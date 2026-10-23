@@ -57,3 +57,21 @@ language sql security definer set search_path = public as $$
   delete from public.check_cache where created_at < now() - interval '2 days';
 $$;
 revoke all on function public.purge_old_cache() from public, anon, authenticated;
+
+-- User feedback on verdicts ("Was this result right?"). Only the backend writes it.
+-- masked_message is filled only when the user ticks "share the message".
+create table if not exists public.feedback (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  user_id uuid references auth.users (id) on delete set null,
+  rating text not null check (rating in ('correct', 'wrong', 'unsure')),
+  verdict_shown text not null,
+  scam_type text,
+  actual text check (actual in ('scam', 'genuine', 'unsure')),
+  comment text,
+  masked_message text,
+  trace_id text
+);
+create index if not exists feedback_created_idx on public.feedback (created_at desc);
+alter table public.feedback enable row level security;
+-- No policies: nobody except the backend can read or write feedback.

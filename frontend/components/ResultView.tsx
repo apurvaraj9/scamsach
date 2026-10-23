@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useApp } from "@/lib/app-context";
 import type { Report } from "@/lib/types";
+import { Feedback } from "./Feedback";
 
 function Stamp({ verdict, label }: { verdict: Report["verdict"]; label: string }) {
   return (
@@ -152,6 +154,12 @@ export function ResultView({ report, originalMessage }: { report: Report; origin
           {t.aiNote[report.summary_by]} {report.decision_note}
         </p>
       </details>
+
+      <p className="guide-link">
+        <Link href="/guide">{t.guideFromResult}</Link>
+      </p>
+
+      <Feedback key={report.created_at} report={report} message={originalMessage || report.masked_message} />
 
       <aside className="disclaimer">
         <strong>{t.disclaimerTitle}: </strong>

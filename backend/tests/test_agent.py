@@ -81,3 +81,19 @@ async def test_llm_summary_used_when_it_agrees(settings_env):
     assert report["verdict"] == "scam"
     assert report["summary"]["hi"] == "यह नकली नौकरी का ऑफ़र है।"
     assert report["engine"]["planner"] == "ai"
+
+
+async def test_vehicle_number_note_and_official_challan_step():
+    report = await investigate("Red light violation by your vehicle MH12AB1234. Pay challan of Rs 1000 today: https://echallan-bharat-traffic.in/pay")
+    assert report["verdict"] == "scam"
+    assert "MH12AB1234" not in report["masked_message"]
+    assert any(f["data"].get("rule") == "vehicle_number" for f in report["findings"])
+    links = [s["link"] for s in report["next_steps"]["no_loss"]["steps"]]
+    assert "https://echallan.parivahan.gov.in" in links
+
+
+async def test_card_number_advice_only_for_bank_impersonation():
+    bank = await investigate("Your SBI account is blocked. Update KYC: http://sbi-kyc-update.xyz/login")
+    challan = await investigate("Pay your e-challan fine today: http://echallan-parivahan.top/pay")
+    has_card = lambda r: any("card" in s["en"] for s in r["next_steps"]["no_loss"]["steps"])  # noqa: E731
+    assert has_card(bank) and not has_card(challan)

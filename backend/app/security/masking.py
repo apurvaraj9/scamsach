@@ -30,6 +30,12 @@ URL_RE = re.compile(
 EMAIL_RE = re.compile(r"\b[\w.+-]{1,64}@[\w-]{1,63}(?:\.[\w-]{2,63})+\b")
 UPI_RE = re.compile(r"\b[\w.\-]{2,64}@[a-zA-Z][a-zA-Z0-9]{1,30}\b(?!\.[a-zA-Z])")
 PAN_RE = re.compile(r"\b[A-Z]{5}\d{4}[A-Z]\b")
+# Indian vehicle registration numbers (MH12AB1234, DL 3C AB 1234, 22 BH 1234 AA).
+# The state code list keeps ordinary words like "is 12 at 2026" from matching.
+_STATES = "AN|AP|AR|AS|BR|CH|CG|DD|DL|DN|GA|GJ|HP|HR|JH|JK|KA|KL|LA|LD|MH|ML|MN|MP|MZ|NL|OD|OR|PB|PY|RJ|SK|TN|TR|TS|UK|UA|UP|WB"
+VEHICLE_RE = re.compile(
+    rf"\b(?:(?:{_STATES})[\s-]?\d{{1,2}}[\s-]?[A-Z]{{0,3}}(?:[\s-]?[A-Z]{{1,3}})?[\s-]?\d{{4}}|\d{{2}}[\s-]?BH[\s-]?\d{{4}}[\s-]?[A-Z]{{1,2}})\b"
+)
 AADHAAR_RE = re.compile(r"\b[2-9]\d{3}[\s-]?\d{4}[\s-]?\d{4}\b")
 CARD_RE = re.compile(r"\b\d{4}[\s-]\d{4}[\s-]\d{4}[\s-]\d{1,7}\b|\b\d{15,19}\b")
 TOLL_FREE_RE = re.compile(r"\b(?:1800|1860)[\s-]?\d{3}[\s-]?\d{3,4}\b")
@@ -101,6 +107,7 @@ def mask_text(text: str) -> MaskResult:
     # 2. Mask personal identifiers, most specific first.
     work = m.sub(UPI_RE, "UPI", work)
     work = m.sub(PAN_RE, "PAN", work)
+    work = m.sub(VEHICLE_RE, "VEHICLE", work)
     work = OTP_RE.sub(lambda x: x.group(1) + m.token("OTP", x.group(2)), work)
     work = m.sub(CARD_RE, "CARD", work)
     work = m.sub(AADHAAR_RE, "AADHAAR", work)

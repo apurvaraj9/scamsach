@@ -1,13 +1,13 @@
 {
   "dev": {
-    "n": 36,
+    "n": 38,
     "accuracy": 1.0,
     "scam_recall": 1.0,
     "strict_scam_recall": 1.0,
     "false_positive_rate": 0.0,
     "confusion": {
-      "likely_safe->likely_safe": 11,
-      "scam->scam": 24,
+      "likely_safe->likely_safe": 12,
+      "scam->scam": 25,
       "suspicious->suspicious": 1
     }
   },
@@ -25,14 +25,14 @@
     }
   },
   "all": {
-    "n": 50,
-    "accuracy": 0.96,
+    "n": 52,
+    "accuracy": 0.9615384615384616,
     "scam_recall": 1.0,
-    "strict_scam_recall": 0.96875,
+    "strict_scam_recall": 0.9696969696969697,
     "false_positive_rate": 0.0,
     "confusion": {
-      "likely_safe->likely_safe": 16,
-      "scam->scam": 31,
+      "likely_safe->likely_safe": 17,
+      "scam->scam": 32,
       "scam->suspicious": 1,
       "suspicious->likely_safe": 1,
       "suspicious->suspicious": 1

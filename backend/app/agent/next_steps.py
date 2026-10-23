@@ -27,11 +27,60 @@ CHAKSHU_CATEGORY = {
 }
 
 
+# "Check it the real way": where to verify each kind of claim yourself,
+# instead of using anything inside the message.
+OFFICIAL_CHECK: dict[str, tuple[str, str, str | None]] = {
+    "traffic_challan": (
+        "To check for a real challan, open echallan.parivahan.gov.in yourself and type your vehicle number.",
+        "असली चालान देखने के लिए खुद echallan.parivahan.gov.in खोलें और अपनी गाड़ी का नंबर डालें।",
+        "https://echallan.parivahan.gov.in",
+    ),
+    "courier": (
+        "To track a parcel, use the tracking number from the shop where you ordered, on the courier's own app or "
+        "website (India Post: indiapost.gov.in). Customs never asks for fees by SMS or WhatsApp.",
+        "पार्सल ट्रैक करने के लिए, जहाँ से ऑर्डर किया उसका ट्रैकिंग नंबर कूरियर के अपने ऐप या वेबसाइट पर डालें "
+        "(इंडिया पोस्ट: indiapost.gov.in)। कस्टम्स कभी SMS या WhatsApp पर फ़ीस नहीं मांगता।",
+        "https://www.indiapost.gov.in",
+    ),
+    "electricity": (
+        "Check your bill only in your electricity company's official app or website, or on the printed bill. "
+        "Power companies never ask you to call a mobile number.",
+        "अपना बिल सिर्फ़ बिजली कंपनी के आधिकारिक ऐप/वेबसाइट या छपे हुए बिल पर देखें। बिजली कंपनी कभी मोबाइल नंबर पर कॉल करने को नहीं कहती।",
+        None,
+    ),
+    "kyc": (
+        "Real banks do KYC in the branch or inside their own app. Indian bank websites now end in .bank.in.",
+        "असली बैंक KYC ब्रांच में या अपने ऐप में करते हैं। भारतीय बैंकों की वेबसाइट अब .bank.in पर खत्म होती है।",
+        None,
+    ),
+    "refund": (
+        "Real refunds come back to your account on their own. You never need to share an OTP or PIN to get one.",
+        "असली रिफंड अपने-आप खाते में आता है। इसके लिए कभी OTP या PIN बताने की ज़रूरत नहीं होती।",
+        None,
+    ),
+    "upi_collect": (
+        "In a UPI app, entering your PIN always SENDS money. You never need a PIN to receive money.",
+        "UPI ऐप में PIN डालने से पैसे हमेशा जाते हैं। पैसे पाने के लिए कभी PIN नहीं लगता।",
+        None,
+    ),
+    "job_task": (
+        "Real jobs never ask you to pay a fee or do paid 'tasks'. Search the company's official careers page yourself.",
+        "असली नौकरी कभी फ़ीस या पैसे वाले 'टास्क' नहीं मांगती। कंपनी का आधिकारिक करियर पेज खुद खोजें।",
+        None,
+    ),
+    "digital_arrest": (
+        "There is no such thing as 'digital arrest' in Indian law. Hang up and call 1930 or your local police station.",
+        "भारतीय कानून में 'डिजिटल अरेस्ट' जैसा कुछ नहीं होता। कॉल काटें और 1930 या नज़दीकी थाने पर कॉल करें।",
+        "tel:1930",
+    ),
+}
+
+
 def _step(en: str, hi: str, link: str | None = None) -> dict:
     return {"en": en, "hi": hi, "link": link}
 
 
-def build_next_steps(verdict: str, scam_type: str, impersonates: str | None, links: list[str]) -> dict:
+def build_next_steps(verdict: str, scam_type: str, impersonates: str | None, links: list[str], impersonates_category: str | None = None) -> dict:
     """Return steps for both situations; the UI switches between them when the
     user answers 'Did you lose money or share your OTP/PIN?'."""
     who = impersonates or "a trusted organisation"
@@ -56,6 +105,7 @@ def build_next_steps(verdict: str, scam_type: str, impersonates: str | None, lin
                 "Never share OTP, UPI PIN, CVV or passwords. You never need a PIN to RECEIVE money.",
                 "OTP, UPI PIN, CVV या पासवर्ड कभी न बताएं। पैसे पाने के लिए कभी PIN नहीं लगता।",
             ),
+            *([_step(*OFFICIAL_CHECK[scam_type])] if scam_type in OFFICIAL_CHECK else []),
             _step("Take a screenshot, then block the sender and delete the message.", "स्क्रीनशॉट ले लें, फिर भेजने वाले को ब्लॉक करें और संदेश हटा दें।"),
             _step(
                 "Report it on Chakshu (Sanchar Saathi). Use the ready report text below.",
@@ -63,7 +113,7 @@ def build_next_steps(verdict: str, scam_type: str, impersonates: str | None, lin
                 CHAKSHU_URL,
             ),
         ]
-        if impersonates:
+        if impersonates and impersonates_category in ("bank", "payments"):
             no_loss.append(
                 _step(
                     f"If you are worried about your {impersonates} account, call the number printed on your card or on "

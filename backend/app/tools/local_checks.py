@@ -244,3 +244,22 @@ def phone_check(phone: PhoneEntity, scam_context: bool) -> Finding:
         detail="Report misuse of this number on Chakshu (Sanchar Saathi).",
         source_name=src,
     )
+
+
+def vehicle_number_note(scam_context: bool) -> Finding:
+    """A message that quotes the user's real vehicle number feels genuine, but
+    fake e-challan gangs often have real numbers from leaked data. Weight 0:
+    this is advice, not evidence, so it never changes the verdict."""
+    return Finding(
+        "pattern_scan",
+        "message",
+        "warning" if scam_context else "info",
+        "Mentions a vehicle number - that alone does not prove it is real",
+        "गाड़ी का नंबर लिखा है - सिर्फ़ इससे यह असली साबित नहीं होता",
+        detail="Scammers often know real vehicle numbers. Check challans yourself at echallan.parivahan.gov.in "
+        "by typing your vehicle number - never through a link in a message.",
+        source_name=SRC_RULES,
+        source_url="https://echallan.parivahan.gov.in",
+        weight=0,
+        data={"rule": "vehicle_number"},
+    )

@@ -19,6 +19,8 @@ services:
         generateValue: true
       - key: ALLOWED_ORIGINS
         sync: false
+      - key: ADMIN_EMAILS
+        sync: false
       - key: GEMINI_API_KEY
         sync: false
       - key: GROQ_API_KEY

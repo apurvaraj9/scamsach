@@ -114,6 +114,11 @@ class Store:
         )
         return r.json() if r is not None else []
 
+    # ---- feedback ----------------------------------------------------------
+    async def save_feedback(self, row: dict) -> bool:
+        r = await self._request("POST", "feedback", json=row)
+        return r is not None
+
     # ---- result cache ----------------------------------------------------
     async def cache_get(self, fingerprint: str) -> dict | None:
         since = (datetime.now(timezone.utc) - timedelta(hours=CACHE_HOURS)).isoformat()

@@ -740,6 +740,100 @@ textarea:focus {
   gap: 0.6rem;
 }
 
+/* ---------- Feedback ---------- */
+.guide-link {
+  margin-top: 1.25rem;
+  font-weight: 600;
+}
+.feedback {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+}
+.feedback fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0 0 0.75rem;
+}
+.feedback legend {
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+.feedback-form {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+.chip-on {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+label.chip {
+  display: inline-flex;
+  align-items: center;
+}
+.small-label {
+  font-size: 0.98rem;
+}
+.check-row {
+  display: grid;
+  grid-template-columns: 1.4rem 1fr;
+  gap: 0.5rem;
+  align-items: start;
+  font-size: 0.95rem;
+}
+.check-row input {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.2rem;
+}
+.feedback-thanks {
+  margin-top: 1.25rem;
+  padding: 0.8rem 1rem;
+  border-radius: var(--radius-control);
+  background: var(--green-wash);
+  font-weight: 600;
+}
+
+/* ---------- Guide ---------- */
+.guide section {
+  margin-top: 1.75rem;
+}
+.guide ul {
+  padding-left: 1.2rem;
+}
+.guide li {
+  margin-bottom: 0.55rem;
+}
+.where-list {
+  margin: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+.where-list div {
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-control);
+  padding: 0.7rem 0.9rem;
+}
+.where-list dt {
+  font-weight: 600;
+}
+.where-list dd {
+  margin: 0.15rem 0 0;
+  overflow-wrap: anywhere;
+}
+.guide .rules {
+  background: var(--sheet);
+  border-left: 6px solid var(--stamp-red);
+  border-radius: var(--radius-control);
+  padding: 1rem 1rem 0.5rem;
+}
+.guide .btn-primary {
+  margin-top: 1.75rem;
+}
+
 /* ---------- Footer ---------- */
 .site-footer {
   border-top: 1px solid var(--rule);

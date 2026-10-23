@@ -2,6 +2,7 @@
 (a local .env file in development, the hosting platform's secret store in
 production). Nothing secret is ever hard-coded or sent to the browser."""
 
+import os
 from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -53,6 +54,12 @@ class Settings(BaseSettings):
 
     # --- Abuse protection -------------------------------------------------
     anon_checks_per_hour: int = 5
+    # Re-showing a cached result costs no API quota, so it gets a looser limit.
+    cached_checks_per_hour: int = 60
+    # Google-login e-mails (comma separated) that skip the per-user daily limit.
+    # For the project owner's own testing; the global hourly ceiling still applies.
+    admin_emails: str = ""
+    feedback_per_hour: int = 10
     user_checks_per_day: int = 40
     followups_per_hour: int = 15
     max_concurrent_investigations: int = 3
@@ -61,6 +68,10 @@ class Settings(BaseSettings):
     @property
     def origins(self) -> list[str]:
         return [o.strip() for o in self.allowed_origins.split(",") if o.strip()]
+
+    @property
+    def admin_email_set(self) -> set[str]:
+        return {e.strip().lower() for e in self.admin_emails.split(",") if e.strip()}
 
     @property
     def supabase_enabled(self) -> bool:
@@ -73,4 +84,8 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
+    # The test suite sets SCAMSACH_IGNORE_DOTENV=1 so a developer's personal
+    # .env (keys, raised limits) can never change test results.
+    if os.getenv("SCAMSACH_IGNORE_DOTENV") == "1":
+        return Settings(_env_file=None)
     return Settings()

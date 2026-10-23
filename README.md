@@ -17,7 +17,9 @@ Built for the people who receive these messages every day and can least tell the
 - **Shows its work live:** every step streams to the page as it happens.
 - **Verdict + evidence + next steps:** *scam / suspicious / likely safe*, a plain-language explanation in English and Hindi, and ready-to-paste report text for Chakshu or cybercrime.gov.in.
 - **Memory:** logged-in users get a history of past checks and can ask follow-up questions about any case.
-- **Privacy first:** phone numbers, account numbers, Aadhaar, PAN, card numbers, UPI IDs, e-mails and OTPs are masked **before** anything reaches an LLM, a trace or the database.
+- **Feedback loop:** every result asks "Was this result right?". Wrong-verdict reports (with the masked message, only if the user agrees to share it) are stored for review and attached as a score to the agent's Langfuse trace; reviewed reports become new evaluation cases. The first one came from the author's own family: a fake red-light challan on WhatsApp that quoted the family's real car number (dataset case D37).
+- **Teaches, not just judges:** a bilingual "How to spot a fake" guide (SMS sender names and TRAI's -T/-S/-P/-G suffixes, `.bank.in` / `.gov.in` addresses, where to check challans, parcels and bills yourself), and every scam result includes the official place to verify that kind of claim.
+- **Privacy first:** phone numbers, account numbers, Aadhaar, PAN, card numbers, vehicle registration numbers, UPI IDs, e-mails and OTPs are masked **before** anything reaches an LLM, a trace or the database.
 
 ## Architecture
 
@@ -78,7 +80,7 @@ flowchart TD
 - **Never contact the scam site.** Short links are expanded by asking only known shortener services for their redirect header (HEAD, no body read). Many scam links carry a per-victim tracking ID; visiting them would tell the scammer the victim engaged. Every hop is also SSRF-checked (http/https only, ports 80/443, public IPs only).
 - **PII masking before the LLM.** On Google's free tier, prompts may be used to improve Google products and can be read by human reviewers, so masking is a requirement, not a nice extra. The masker also runs as the Langfuse `mask` hook, so traces are masked even if a raw string slips through. The database stores only the masked message; the original text stays in the user's browser (it is used only to fill in the ready-made report).
 - **Lookalike characters are normalised first.** NFKC folds tricks like **𝐒𝐁𝐈** (mathematical bold) and full-width letters into plain SBI, and zero-width spaces are stripped, while the joiners Hindi needs are kept.
-- **Free-quota engineering:** per-IP limits for anonymous users (5/hour), per-user daily limits, a global hourly ceiling, per-provider LLM budgets kept below the free limits, a VirusTotal token bucket (4/min, 450/day), result caching (memory + Postgres, keyed by an HMAC of the message), and automatic LLM fallback Gemini → Groq → rules-only.
+- **Free-quota engineering:** per-IP limits for anonymous users (5/hour; repeats of a recently checked message are free because they cost no API calls), an `ADMIN_EMAILS` setting so the owner can test from any device after logging in, per-user daily limits, a global hourly ceiling, per-provider LLM budgets kept below the free limits, a VirusTotal token bucket (4/min, 450/day), result caching (memory + Postgres, keyed by an HMAC of the message), and automatic LLM fallback Gemini → Groq → rules-only.
 - **Model names are configuration, not code.** Providers retire model names often; the client tries each configured model in order and remembers which one works. `python -m scripts.check_setup` lists the models your key can actually use.
 - **Built to survive weeks unattended:** the website pings the backend on load and shows a friendly *"Waking up the checker…"* banner while a sleeping free instance boots; cron-job.org pings `/health` every 10 minutes; a daily GitHub Action hits `/health/deep`, which touches Supabase so the free project never reaches its 7-day inactivity pause, and purges old cache rows.
 - **Secrets can't be committed:** `.env` files are git-ignored everywhere, only `.env.example` files are tracked, CI runs a gitleaks secret scan on every push, and the Safe Browsing key is sent in a header (not the URL) so it can never appear in logs.
@@ -86,7 +88,7 @@ flowchart TD
 
 ## Evaluation
 
-`backend/evals/` holds 50 labelled messages: scams of 15+ types and genuine messages (OTPs, debit/credit alerts, deliveries, family texts) in English, Hindi and Hinglish. The **holdout** file was written before any rule tuning and was never tuned on.
+`backend/evals/` holds 52 labelled messages: scams of 15+ types and genuine messages (OTPs, debit/credit alerts, deliveries, family texts) in English, Hindi and Hinglish. The **holdout** file was written before any rule tuning and was never tuned on.
 
 ```bash
 python -m evals.run_eval          # offline: rules only, free, deterministic (runs in CI)
@@ -97,14 +99,14 @@ Offline (rules only) results:
 
 | Split | N | Scam recall (flagged) | False-positive rate | Exact 3-class accuracy |
 |---|---|---|---|---|
-| Dev (tuned on) | 36 | 100% | 0% | 100% |
+| Dev (tuned on) | 38 | 100% | 0% | 100% |
 | Holdout (never tuned on) | 14 | 100% | 0% | 86% |
 
-Before tuning, dev scam recall was 83%; tuning on the dev set did not change the holdout numbers, which suggests the rule changes did not overfit to it. The two holdout misses are "too cautious / not cautious enough" rather than missed scams: a Hinglish job scam rated *suspicious* instead of *scam*, and a spammy sale link rated *likely safe* instead of *suspicious*. Live-mode results (with the LLM judge) are written to `evals/results_live.md`. 50 messages is a small set; treat these numbers as a regression gate, not a benchmark.
+Before tuning, dev scam recall was 83%; tuning on the dev set did not change the holdout numbers, which suggests the rule changes did not overfit to it. The two holdout misses are "too cautious / not cautious enough" rather than missed scams: a Hinglish job scam rated *suspicious* instead of *scam*, and a spammy sale link rated *likely safe* instead of *suspicious*. Live-mode results (with the LLM judge) are written to `evals/results_live.md`. 52 messages is a small set; treat these numbers as a regression gate, not a benchmark.
 
 ## Testing and CI
 
-- `pytest` — 70 tests: masking, extraction, lookalikes, every scam pattern, scoring/combination policy, SSRF protection, threat-intel clients (mocked with `respx`), LLM fallback and model retirement, end-to-end agent runs including prompt injection, and API behaviour (streaming, caching, validation, rate limits, CORS, auth).
+- `pytest` — 76 tests: masking, extraction, lookalikes, every scam pattern, scoring/combination policy, SSRF protection, threat-intel clients (mocked with `respx`), LLM fallback and model retirement, end-to-end agent runs including prompt injection, and API behaviour (streaming, caching, validation, rate limits, CORS, auth).
 - GitHub Actions on every push: lint (ruff), tests, the offline eval gate (fails below 90% scam recall or above 10% false positives), Docker build + container smoke test, frontend typecheck + production build, and a gitleaks secret scan.
 
 ## Run it locally (Windows PowerShell)

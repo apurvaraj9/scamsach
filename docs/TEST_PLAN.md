@@ -20,7 +20,9 @@ Paste each message exactly as written. "Flagged" means the verdict is *SCAM* or 
 | T11 | Genuine delivery | `Your Amazon order for Prestige Pressure Cooker has been shipped and will arrive tomorrow. Track: https://amzn.in/d/abc123` | LIKELY SAFE | "Official website of Amazon" |
 | T12 | Genuine family (Hindi) | `बेटा, मैं घर पहुँच गया हूँ। फ्री हो तो फ़ोन कर लेना। - पापा` | LIKELY SAFE | |
 
-Pass rule: T1–T8 all flagged (at least 6 of them exactly SCAM) and T9–T12 all LIKELY SAFE.
+| T13 | Real-life challan case | `Traffic Police: Red light violation recorded for your vehicle MH12AB1234. Pay challan of Rs 1,000 today to avoid court case: https://echallan-bharat-traffic.in/pay` | SCAM | "Mentions a vehicle number" note; echallan.parivahan.gov.in step |
+
+Pass rule: T1–T8 and T13 all flagged (at least 6 of them exactly SCAM) and T9–T12 all LIKELY SAFE.
 
 ## B. Feature checks (live site)
 
@@ -38,6 +40,9 @@ Pass rule: T1–T8 all flagged (at least 6 of them exactly SCAM) and T9–T12 al
 - [ ] **Cache:** checking T1 a second time shows "This exact message was checked recently".
 - [ ] **Rate limit:** while logged out, a 6th check within an hour shows a friendly "too many checks" message.
 - [ ] **Waking up:** if the backend was asleep, a "Waking up the checker…" banner appears instead of an error.
+- [ ] **Feedback:** on any result, tap **No** under "Was this result right?", pick an answer, tick "Share this message", send; a thank-you appears (and a row appears in the Supabase `feedback` table).
+- [ ] **Guide:** "How to spot a fake" opens from the header and from a result, in English and Hindi.
+- [ ] **Vehicle number:** the real-life challan message (T13 above) is SCAM, the vehicle number shows as `[VEHICLE_1]` in the saved case, and "What to do now" links to echallan.parivahan.gov.in.
 - [ ] **Disclaimer:** every result shows the "guidance, not a guarantee" note.
 - [ ] **Observability:** the check appears as a trace in Langfuse, with masked text only.
 - [ ] **CI:** the latest GitHub Actions run is green.

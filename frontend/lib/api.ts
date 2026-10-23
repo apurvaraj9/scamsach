@@ -93,6 +93,26 @@ async function json<T>(path: string, token: string, init: RequestInit = {}): Pro
   return res.json() as Promise<T>;
 }
 
+export interface FeedbackPayload {
+  rating: "correct" | "wrong" | "unsure";
+  verdict_shown: string;
+  scam_type: string;
+  actual?: "scam" | "genuine" | "unsure" | null;
+  comment?: string;
+  share_message?: boolean;
+  message?: string | null;
+  trace_id?: string | null;
+}
+
+export async function sendFeedback(token: string | null, payload: FeedbackPayload): Promise<void> {
+  const res = await fetch(`${API_URL}/api/feedback`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders(token) },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new ApiError("", res.status);
+}
+
 export const listCases = (token: string) => json<{ cases: CaseSummary[] }>("/api/cases", token);
 export const getCase = (token: string, id: string) => json<CaseDetail>(`/api/cases/${encodeURIComponent(id)}`, token);
 export const deleteCase = (token: string, id: string) =>

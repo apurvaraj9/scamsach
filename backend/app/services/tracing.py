@@ -79,6 +79,18 @@ def current_trace_id() -> str | None:
         return None
 
 
+def score_trace(trace_id: str, name: str, value: float, comment: str | None = None) -> bool:
+    """Attach a user-feedback score to an agent trace in Langfuse."""
+    client = _get_client()
+    if client is None or not trace_id:
+        return False
+    try:
+        client.create_score(trace_id=trace_id, name=name, value=value, data_type="NUMERIC", comment=comment)
+        return True
+    except Exception:
+        return False
+
+
 def flush() -> None:
     client = _get_client()
     if client is not None:

@@ -19,7 +19,7 @@ import re
 import unicodedata
 import uuid
 from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator
+from typing import Any, AsyncIterator, Literal
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -180,18 +180,26 @@ async def investigate(body: InvestigateIn, request: Request, user: dict | None =
     if len(message) > s.max_message_chars:
         raise HTTPException(status_code=422, detail=f"Message is too long (max {s.max_message_chars} characters).")
 
-    if user:
-        ok, retry = limiter.check(f"user:{user['id']}", s.user_checks_per_day, 86400)
-        if not ok:
-            return _too_many(retry, "Daily limit reached for your account. Please try again tomorrow.")
-    else:
-        ok, retry = limiter.check(f"ip:{client_ip(request)}", s.anon_checks_per_hour, 3600)
-        if not ok:
-            return _too_many(retry, "Too many checks from this connection. Log in for more, or try again later.")
-
     fingerprint = message_fingerprint(message)
     cached = cache_lookup("result", fingerprint) or await store.cache_get(fingerprint)
-    if not cached:
+    ip = client_ip(request)
+    is_admin = bool(user and (user.get("email") or "").lower() in s.admin_email_set)
+
+    if cached:
+        # A repeat of a recent check costs no API quota (e.g. the example buttons),
+        # so it does not use up the visitor's allowance; a loose cap stops abuse.
+        ok, retry = limiter.check(f"cached:{ip}", s.cached_checks_per_hour, 3600)
+        if not ok:
+            return _too_many(retry, "Too many checks from this connection. Please try again later.")
+    else:
+        if user and not is_admin:
+            ok, retry = limiter.check(f"user:{user['id']}", s.user_checks_per_day, 86400)
+            if not ok:
+                return _too_many(retry, "Daily limit reached for your account. Please try again tomorrow.")
+        elif not user:
+            ok, retry = limiter.check(f"ip:{ip}", s.anon_checks_per_hour, 3600)
+            if not ok:
+                return _too_many(retry, "Too many checks from this connection. Log in for more, or try again later.")
         ok, retry = limiter.check("global", GLOBAL_HOURLY_CHECKS, 3600)
         if not ok:
             return _too_many(retry, "ScamSach is very busy right now. Please try again in a few minutes.")
@@ -297,3 +305,43 @@ async def delete_case(case_id: str, user: dict = Depends(require_user)) -> dict:
 @app.delete("/api/cases")
 async def delete_all(user: dict = Depends(require_user)) -> dict:
     return {"deleted": await store.delete_all(user["id"])}
+
+
+# ---------------------------------------------------------------------------
+# Feedback (no login needed). Wrong-verdict reports are the raw material for
+# new evaluation cases; each one is also attached to its Langfuse trace.
+# ---------------------------------------------------------------------------
+class FeedbackIn(BaseModel):
+    rating: Literal["correct", "wrong", "unsure"]
+    verdict_shown: Literal["scam", "suspicious", "likely_safe"]
+    scam_type: str = Field("", max_length=40)
+    actual: Literal["scam", "genuine", "unsure"] | None = None
+    comment: str = Field("", max_length=500)
+    share_message: bool = False
+    message: str | None = Field(None, max_length=10000)
+    trace_id: str | None = Field(None, pattern=r"^[0-9a-f]{16,64}$")
+
+
+@app.post("/api/feedback")
+async def feedback(body: FeedbackIn, request: Request, user: dict | None = Depends(current_user)):
+    ok, retry = limiter.check(f"feedback:{client_ip(request)}", get_settings().feedback_per_hour, 3600)
+    if not ok:
+        return _too_many(retry, "Thanks! You have sent a lot of feedback already. Please try again later.")
+    masked_message = None
+    if body.share_message and body.message:
+        masked_message = mask_text(normalize_message(body.message)[: get_settings().max_message_chars]).text
+    row = {
+        "user_id": user["id"] if user else None,
+        "rating": body.rating,
+        "verdict_shown": body.verdict_shown,
+        "scam_type": body.scam_type,
+        "actual": body.actual,
+        "comment": mask_text(normalize_message(body.comment)).text if body.comment else None,
+        "masked_message": masked_message,
+        "trace_id": body.trace_id,
+    }
+    saved = await store.save_feedback(row)
+    value = {"correct": 1.0, "wrong": 0.0, "unsure": 0.5}[body.rating]
+    traced = tracing.score_trace(body.trace_id or "", "user_feedback", value, body.actual)
+    tracing.flush()
+    return {"saved": saved, "traced": traced}

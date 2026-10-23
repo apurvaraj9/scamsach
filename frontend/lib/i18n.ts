@@ -59,6 +59,20 @@ const en = {
   footer: "ScamSach is a free, non-commercial project. In an emergency call 1930 (Cyber Crime Helpline).",
   sbAttribution: "Some link checks use Google Safe Browsing.",
   messageTooShort: "Please paste the message you want to check.",
+  guideLink: "How to spot a fake",
+  guideFromResult: "Learn how to tell a real message from a fake one",
+  fbQuestion: "Was this result right?",
+  fbYes: "Yes",
+  fbNo: "No",
+  fbUnsure: "Not sure",
+  fbActual: "What was it really?",
+  fbActualScam: "A scam",
+  fbActualGenuine: "Genuine",
+  fbActualUnsure: "I don't know",
+  fbComment: "Anything we missed? (optional)",
+  fbShare: "Share this message to help improve ScamSach. Phone numbers, account numbers and OTPs are hidden first.",
+  fbSend: "Send feedback",
+  fbThanks: "Thank you. Your feedback helps ScamSach catch more scams.",
 };
 
 type Dict = typeof en;
@@ -120,6 +134,20 @@ const hi: Dict = {
   footer: "ScamSach एक मुफ़्त, गैर-व्यावसायिक प्रोजेक्ट है। आपात स्थिति में 1930 (साइबर क्राइम हेल्पलाइन) पर कॉल करें।",
   sbAttribution: "कुछ लिंक जांचों में Google Safe Browsing का उपयोग होता है।",
   messageTooShort: "कृपया वह संदेश पेस्ट करें जिसे आप जांचना चाहते हैं।",
+  guideLink: "नकली कैसे पहचानें",
+  guideFromResult: "जानें कि असली और नकली संदेश में फ़र्क कैसे करें",
+  fbQuestion: "क्या यह नतीजा सही था?",
+  fbYes: "हाँ",
+  fbNo: "नहीं",
+  fbUnsure: "पता नहीं",
+  fbActual: "असल में यह क्या था?",
+  fbActualScam: "धोखा",
+  fbActualGenuine: "असली",
+  fbActualUnsure: "मुझे नहीं पता",
+  fbComment: "हमसे कुछ छूट गया? (अपनी मर्ज़ी से)",
+  fbShare: "ScamSach को बेहतर बनाने के लिए यह संदेश साझा करें। फ़ोन नंबर, खाता नंबर और OTP पहले छुपा दिए जाते हैं।",
+  fbSend: "फ़ीडबैक भेजें",
+  fbThanks: "धन्यवाद। आपके फ़ीडबैक से ScamSach ज़्यादा धोखे पकड़ पाएगा।",
 };
 
 export const dict: Record<Lang, Dict> = { en, hi };

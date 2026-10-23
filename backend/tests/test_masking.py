@@ -47,3 +47,9 @@ def test_mask_any_recurses():
 
 def test_mask_for_display():
     assert mask_for_display("9876543210") == "******3210"
+
+
+def test_vehicle_numbers_masked_but_not_ordinary_words():
+    r = mask_text("Challan for MH12AB1234 and DL 3C AB 1234. This is 12 at 2026.")
+    assert "MH12AB1234" not in r.text and "DL 3C AB 1234" not in r.text
+    assert "This is 12 at 2026" in r.text and r.counts["VEHICLE"] == 2

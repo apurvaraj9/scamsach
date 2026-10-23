@@ -17,6 +17,7 @@ _BLANK = [
 ]
 for name in _BLANK:
     os.environ[name] = ""
+os.environ["SCAMSACH_IGNORE_DOTENV"] = "1"  # never read the developer's local .env
 os.environ["ENVIRONMENT"] = "test"
 os.environ["ENABLE_NETWORK_TOOLS"] = "false"
 os.environ["CACHE_SECRET"] = "test-secret"

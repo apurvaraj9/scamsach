@@ -62,3 +62,56 @@ def test_cors_only_allows_configured_origin():
 def test_normalize_folds_lookalike_letters_and_zero_width():
     assert normalize_message("\U0001d412\U0001d401\U0001d408 K\u200bYC") == "SBI KYC"  # bold letters + zero-width space
     assert "\u200d" in normalize_message("\u0915\u094d\u200d\u0937")  # Hindi zero-width joiner is kept
+
+
+def test_cached_repeats_do_not_use_up_the_allowance():
+    msg = {"message": "Your parcel is held at customs, pay Rs 49 now"}
+    for _ in range(8):  # same message: only the first one costs quota
+        assert client.post("/api/investigate", json=msg).status_code == 200
+    for i in range(4):  # 4 more new messages still fit in the 5/hour allowance
+        assert client.post("/api/investigate", json={"message": f"new message {i} to check"}).status_code == 200
+    assert client.post("/api/investigate", json={"message": "one too many"}).status_code == 429
+
+
+def test_admin_email_skips_user_limit(settings_env, monkeypatch):
+    settings_env(admin_emails="owner@example.com", user_checks_per_day=1)
+
+    async def fake_user():
+        return {"id": "u1", "email": "Owner@Example.com"}
+
+    from app.main import current_user
+
+    app.dependency_overrides[current_user] = fake_user
+    try:
+        for i in range(3):
+            assert client.post("/api/investigate", json={"message": f"admin test message {i}"}).status_code == 200
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_feedback_validation_and_masking(monkeypatch):
+    saved = {}
+
+    async def fake_save(row):
+        saved.update(row)
+        return True
+
+    from app.services.store import store
+
+    monkeypatch.setattr(store, "save_feedback", fake_save)
+    r = client.post(
+        "/api/feedback",
+        json={
+            "rating": "wrong",
+            "verdict_shown": "likely_safe",
+            "actual": "scam",
+            "comment": "call me on 9876543210",
+            "share_message": True,
+            "message": "Pay challan for MH12AB1234 at http://echallan-pay.top",
+        },
+    )
+    assert r.status_code == 200 and r.json()["saved"] is True
+    assert "9876543210" not in saved["comment"] and "MH12AB1234" not in saved["masked_message"]
+    assert "echallan-pay.top" in saved["masked_message"]
+    bad = client.post("/api/feedback", json={"rating": "meh", "verdict_shown": "scam"})
+    assert bad.status_code == 422

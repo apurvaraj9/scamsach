@@ -6,7 +6,7 @@ from __future__ import annotations
 import re
 from dataclasses import asdict, dataclass, field
 
-from ..security.masking import EMAIL_RE, URL_RE
+from ..security.masking import EMAIL_RE, URL_RE, VEHICLE_RE
 from .data import COUNTRY_CODES
 from .domains import is_risky_tld, is_shortener, official_owner, parse_url
 
@@ -101,6 +101,7 @@ class Entities:
     amounts: list[str] = field(default_factory=list)
     language: str = "en"  # en | hi | hinglish
     has_apk_mention: bool = False
+    vehicle_numbers: int = 0  # count only; the numbers themselves are personal data
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -201,4 +202,5 @@ def extract_entities(text: str) -> Entities:
             ent.phones.append(phone)
 
     ent.amounts = [m.group(0) for m in AMOUNT_RE.finditer(text)][:10]
+    ent.vehicle_numbers = len(set(VEHICLE_RE.findall(text)))
     return ent

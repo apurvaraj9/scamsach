@@ -1,18 +1,18 @@
 # ScamSach evaluation (offline)
 
-Generated: 2026-10-23 13:25
+Generated: 2026-10-23 20:37
 
 | Split | N | Accuracy (3-class) | Scam recall (flagged) | Strict scam recall | False-positive rate |
 |---|---|---|---|---|---|
-| dev | 36 | 100% | 100% | 100% | 0% |
+| dev | 38 | 100% | 100% | 100% | 0% |
 | holdout | 14 | 86% | 100% | 88% | 0% |
-| all | 50 | 96% | 100% | 97% | 0% |
+| all | 52 | 96% | 100% | 97% | 0% |
 
 ## Confusion (label -> prediction)
 
-- **dev**: likely_safe->likely_safe: 11, scam->scam: 24, suspicious->suspicious: 1
+- **dev**: likely_safe->likely_safe: 12, scam->scam: 25, suspicious->suspicious: 1
 - **holdout**: likely_safe->likely_safe: 5, scam->scam: 7, scam->suspicious: 1, suspicious->likely_safe: 1
-- **all**: likely_safe->likely_safe: 16, scam->scam: 31, scam->suspicious: 1, suspicious->likely_safe: 1, suspicious->suspicious: 1
+- **all**: likely_safe->likely_safe: 17, scam->scam: 32, scam->suspicious: 1, suspicious->likely_safe: 1, suspicious->suspicious: 1
 
 ## Misses
 

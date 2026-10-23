@@ -14,6 +14,9 @@ export function Header() {
           <span className="wordmark-sach">Sach</span>
         </Link>
         <nav className="header-actions" aria-label="Main">
+          <Link href="/guide" className="link-button">
+            {t.guideLink}
+          </Link>
           <button
             type="button"
             className="lang-toggle"

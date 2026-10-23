@@ -165,6 +165,12 @@ async def local_checks_node(state: AgentState) -> dict:
             if f.signal != "info":
                 _step(f"pattern:{f.data.get('rule')}", "done", f.title_en, f.title_hi, f.detail, f, phase="local")
 
+        if state["entities"].vehicle_numbers:
+            scammy = any(f.signal == "danger" for f in pats)
+            f = local_checks.vehicle_number_note(scammy)
+            findings.append(f)
+            _step("vehicle", "done", f.title_en, f.title_hi, f.detail, f, phase="local")
+
         for key, item in state["inventory"].items():
             if item["kind"] != "link":
                 continue
@@ -572,7 +578,9 @@ async def judge(state: AgentState) -> dict:
     else:  # never show an AI explanation that argues for a different verdict
         summary, flags, summary_by = fb_summary, fb_flags, "rules"
 
-    impersonates = next((f.data.get("impersonates") for f in findings if f.data.get("impersonates")), None)
+    imp = next((f for f in findings if f.data.get("impersonates")), None)
+    impersonates = imp.data.get("impersonates") if imp else None
+    impersonates_category = imp.data.get("category") if imp else None
     links = [item["link"].host for item in state["inventory"].values() if item["kind"] == "link"]
     confidence = conf if (llm_data and llm_data.get("verdict") == final) else (0.9 if rule.hard_reasons else 0.6)
 
@@ -589,7 +597,7 @@ async def judge(state: AgentState) -> dict:
         "hard_evidence": rule.hard_reasons,
         "findings": [f.to_dict() for f in findings],
         "plan": {"planner": state.get("planner", {}), "calls": state.get("plan", [])},
-        "next_steps": build_next_steps(final, scam_type, impersonates, links),
+        "next_steps": build_next_steps(final, scam_type, impersonates, links, impersonates_category),
         "impersonates": impersonates,
         "links": links,
         "language_detected": state["entities"].language,

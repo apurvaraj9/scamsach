@@ -80,6 +80,7 @@ export interface Report {
   engine: { planner: string; judge: string };
   disclaimer: Bilingual;
   cached?: boolean;
+  trace_id?: string | null;
   created_at: string;
 }
 
