@@ -1,0 +1,7 @@
+# Use gitleaks' default rules; allow the documented example files.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Example env files contain no real values"
+paths = ['''\.env\.example$''']

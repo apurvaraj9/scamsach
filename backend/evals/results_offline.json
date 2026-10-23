@@ -1,0 +1,41 @@
+{
+  "dev": {
+    "n": 36,
+    "accuracy": 1.0,
+    "scam_recall": 1.0,
+    "strict_scam_recall": 1.0,
+    "false_positive_rate": 0.0,
+    "confusion": {
+      "likely_safe->likely_safe": 11,
+      "scam->scam": 24,
+      "suspicious->suspicious": 1
+    }
+  },
+  "holdout": {
+    "n": 14,
+    "accuracy": 0.8571428571428571,
+    "scam_recall": 1.0,
+    "strict_scam_recall": 0.875,
+    "false_positive_rate": 0.0,
+    "confusion": {
+      "likely_safe->likely_safe": 5,
+      "scam->scam": 7,
+      "scam->suspicious": 1,
+      "suspicious->likely_safe": 1
+    }
+  },
+  "all": {
+    "n": 50,
+    "accuracy": 0.96,
+    "scam_recall": 1.0,
+    "strict_scam_recall": 0.96875,
+    "false_positive_rate": 0.0,
+    "confusion": {
+      "likely_safe->likely_safe": 16,
+      "scam->scam": 31,
+      "scam->suspicious": 1,
+      "suspicious->likely_safe": 1,
+      "suspicious->suspicious": 1
+    }
+  }
+}

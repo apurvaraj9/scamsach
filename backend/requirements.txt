@@ -1,0 +1,9 @@
+# Runtime dependencies (pinned so builds are reproducible)
+fastapi==0.159.1
+uvicorn==0.54.0
+httpx==0.28.1
+langgraph==1.2.16
+langfuse==5.0.4
+pydantic-settings==2.16.1
+tldextract==5.4.0
+cachetools==7.2.4
