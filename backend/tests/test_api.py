@@ -115,3 +115,8 @@ def test_feedback_validation_and_masking(monkeypatch):
     assert "echallan-pay.top" in saved["masked_message"]
     bad = client.post("/api/feedback", json={"rating": "meh", "verdict_shown": "scam"})
     assert bad.status_code == 422
+
+
+def test_supabase_rest_endpoint_is_accepted(settings_env):
+    s = settings_env(supabase_url="https://abcd.supabase.co/rest/v1/")
+    assert s.supabase_url == "https://abcd.supabase.co"

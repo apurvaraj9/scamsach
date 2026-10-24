@@ -4,7 +4,7 @@ const isDev = process.env.NODE_ENV !== "production";
 // Must match the default in lib/api.ts. Read at BUILD time: set the variable
 // before building (Vercel does this when it is in the project settings).
 const api = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/$/, "");
-const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+const supabase = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim().replace(/\/+$/, "").replace(/\/rest\/v1$/, "");
 
 // The browser may only talk to our own site, our API and Supabase Auth.
 // Nothing here is secret: API keys live only on the backend.

@@ -5,6 +5,7 @@ production). Nothing secret is ever hard-coded or sent to the browser."""
 import os
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -64,6 +65,13 @@ class Settings(BaseSettings):
     followups_per_hour: int = 15
     max_concurrent_investigations: int = 3
     max_message_chars: int = 2000
+
+    @field_validator("supabase_url")
+    @classmethod
+    def _base_supabase_url(cls, v: str) -> str:
+        """Accept the dashboard's "RESTful endpoint" too (…/rest/v1/): keep only the base URL."""
+        v = v.strip().rstrip("/")
+        return v.removesuffix("/rest/v1").rstrip("/")
 
     @property
     def origins(self) -> list[str]:

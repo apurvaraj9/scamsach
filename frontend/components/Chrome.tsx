@@ -8,39 +8,41 @@ export function Header() {
   const { t, lang, setLang, session, login, logout } = useApp();
   return (
     <header className="site-header">
+      {/* Brand and the language switch stay on the first row everywhere; the
+          text links share one consistent style and drop to a second row on phones. */}
       <div className="wrap header-row">
         <Link href="/" className="wordmark" aria-label="ScamSach home">
           <span className="wordmark-scam">Scam</span>
           <span className="wordmark-sach">Sach</span>
         </Link>
-        <nav className="header-actions" aria-label="Main">
-          <Link href="/guide" className="link-button">
+        <nav className="header-nav" aria-label="Main">
+          <Link href="/guide" className="nav-link">
             {t.guideLink}
           </Link>
-          <button
-            type="button"
-            className="lang-toggle"
-            onClick={() => setLang(lang === "en" ? "hi" : "en")}
-            aria-label={lang === "en" ? "हिंदी में देखें" : "View in English"}
-          >
-            {lang === "en" ? "हिंदी" : "English"}
-          </button>
           {authEnabled &&
             (session ? (
               <>
-                <Link href="/history" className="link-button">
+                <Link href="/history" className="nav-link">
                   {t.history}
                 </Link>
-                <button type="button" className="link-button" onClick={() => void logout()}>
+                <button type="button" className="nav-link" onClick={() => void logout()}>
                   {t.logout}
                 </button>
               </>
             ) : (
-              <button type="button" className="link-button" onClick={() => void login()}>
-                {t.login}
+              <button type="button" className="nav-link" onClick={() => void login()}>
+                {t.loginShort}
               </button>
             ))}
         </nav>
+        <button
+          type="button"
+          className="lang-toggle"
+          onClick={() => setLang(lang === "en" ? "hi" : "en")}
+          aria-label={lang === "en" ? "हिंदी में देखें" : "View in English"}
+        >
+          {lang === "en" ? "हिंदी" : "English"}
+        </button>
       </div>
     </header>
   );

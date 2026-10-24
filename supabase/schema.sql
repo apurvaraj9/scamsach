@@ -1,5 +1,5 @@
 -- ScamSach database schema. Run once in Supabase: SQL Editor -> New query -> paste -> Run.
--- Safe to run again (uses IF NOT EXISTS / OR REPLACE).
+-- Safe to run again (uses IF NOT EXISTS / OR REPLACE). Permissions are at the end.
 --
 -- Privacy by design:
 --   * Only the MASKED message is stored (phone/account numbers/OTPs replaced).
@@ -75,3 +75,18 @@ create table if not exists public.feedback (
 create index if not exists feedback_created_idx on public.feedback (created_at desc);
 alter table public.feedback enable row level security;
 -- No policies: nobody except the backend can read or write feedback.
+
+-- ---------------------------------------------------------------------------
+-- Table permissions (grants).
+-- Since 2026, Supabase no longer exposes new tables to its Data API
+-- automatically: each role needs an explicit GRANT, and RLS then decides which
+-- rows it may see. Least privilege:
+--   * service_role (the backend's secret key): full access.
+--   * authenticated (a logged-in browser): may only READ, and RLS limits that
+--     to the user's own cases and follow-ups.
+--   * anon (a visitor who is not logged in): no access at all.
+-- ---------------------------------------------------------------------------
+grant select, insert, update, delete on public.cases, public.followups, public.check_cache, public.feedback to service_role;
+grant select on public.cases, public.followups to authenticated;
+revoke all on public.cases, public.followups, public.check_cache, public.feedback from anon;
+grant execute on function public.purge_old_cache() to service_role;

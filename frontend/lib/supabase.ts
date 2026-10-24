@@ -2,7 +2,8 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 // The publishable (anon) key is designed to be public; it can only do what
 // Row Level Security allows. The secret key exists only on the backend.
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+// Accept the dashboard's "RESTful endpoint" too (…/rest/v1/): keep the base URL.
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim().replace(/\/+$/, "").replace(/\/rest\/v1$/, "");
 const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
 let client: SupabaseClient | null = null;
