@@ -10,10 +10,15 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import sys
+from pathlib import Path
 
 import httpx
 
-from app.config import get_settings
+# Also works as "python scripts\check_setup.py": make the backend folder importable.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from app.config import get_settings  # noqa: E402
 
 T = httpx.Timeout(15.0, connect=8.0)
 

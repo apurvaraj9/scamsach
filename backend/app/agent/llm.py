@@ -105,7 +105,7 @@ async def _call_gemini(client: httpx.AsyncClient, model: str, system: str, user:
         json={
             "systemInstruction": {"parts": [{"text": system}]},
             "contents": [{"role": "user", "parts": [{"text": user}]}],
-            "generationConfig": {"temperature": 0.2, "responseMimeType": "application/json", "maxOutputTokens": 2048},
+            "generationConfig": {"temperature": 0.2, "responseMimeType": "application/json", "maxOutputTokens": 4096},
         },
     )
     if r.status_code == 429:
@@ -185,6 +185,7 @@ async def complete_json(task: str, system: str, user: str, providers: list[str])
                 data = _parse_json(text)
                 gen.update(output=data or text, usage_details=usage)
                 if data is None:
+                    gen.update(level="WARNING", status_message="reply was not valid JSON; trying next provider")
                     errors.append(f"{name}/{model}: invalid JSON")
                     break
                 return LLMResult(data=data, provider=name, model=model)

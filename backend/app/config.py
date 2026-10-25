@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     # Tried in order. If Google renames/retires a model, the next one is used.
     gemini_models: str = "gemini-3.5-flash-lite,gemini-3.1-flash-lite"
     groq_api_key: str = ""
-    groq_models: str = "llama-3.3-70b-versatile,openai/gpt-oss-120b,meta-llama/llama-4-scout-17b-16e-instruct"
+    groq_models: str = "openai/gpt-oss-120b,llama-3.3-70b-versatile,meta-llama/llama-4-scout-17b-16e-instruct"
     # Which providers each agent step uses, in order of preference.
     planner_providers: str = "groq,gemini"
     judge_providers: str = "gemini,groq"
