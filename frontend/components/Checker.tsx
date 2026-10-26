@@ -64,7 +64,11 @@ export function Checker() {
       );
     } catch (e) {
       if (e instanceof DOMException && e.name === "AbortError") return;
-      if (e instanceof ApiError && e.status === 429) setError(`${t.tooMany} ${e.message}`);
+      if (e instanceof ApiError && e.status === 429) {
+        // Our own translated text only: the server's English detail would repeat it.
+        const minutes = Math.max(1, Math.ceil((e.retryAfter ?? 3600) / 60));
+        setError(`${t.tooMany} ${(token ? t.tooManyLater : t.tooManyLogin).replace("{m}", String(minutes))}`);
+      }
       else if (e instanceof ApiError && e.message) setError(e.message);
       else setError(t.errorGeneric);
     } finally {

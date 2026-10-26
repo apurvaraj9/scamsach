@@ -6,6 +6,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public status: number,
+    public retryAfter?: number, // seconds, sent with 429 "too many checks"
   ) {
     super(message);
   }
@@ -46,12 +47,15 @@ export async function investigate(message: string, token: string | null, handler
   });
   if (!res.ok || !res.body) {
     let detail = "";
+    let retryAfter: number | undefined;
     try {
-      detail = (await res.json()).detail ?? "";
+      const body = await res.json();
+      detail = body.detail ?? "";
+      retryAfter = typeof body.retry_after === "number" ? body.retry_after : undefined;
     } catch {
       /* body was not JSON */
     }
-    throw new ApiError(typeof detail === "string" ? detail : "", res.status);
+    throw new ApiError(typeof detail === "string" ? detail : "", res.status, retryAfter);
   }
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
