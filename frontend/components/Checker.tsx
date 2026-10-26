@@ -8,6 +8,7 @@ import { authEnabled } from "@/lib/supabase";
 import type { PlanEvent, Report } from "@/lib/types";
 import { CaseLog, type LogRow, mergeStep } from "./CaseLog";
 import { ResultView } from "./ResultView";
+import { START_OVER_EVENT } from "@/lib/events";
 
 const MAX = 2000;
 
@@ -24,6 +25,24 @@ export function Checker() {
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => () => abortRef.current?.abort(), []);
+
+  // Clicking the ScamSach logo while already on the home page starts afresh,
+  // as if the site had just been opened (the logo link alone would do nothing).
+  useEffect(() => {
+    function startOver() {
+      abortRef.current?.abort();
+      setBusy(false);
+      setError(null);
+      setCheckedMessage("");
+      setReport(null);
+      setRows([]);
+      setPlans([]);
+      setMessage("");
+      window.scrollTo({ top: 0 });
+    }
+    window.addEventListener(START_OVER_EVENT, startOver);
+    return () => window.removeEventListener(START_OVER_EVENT, startOver);
+  }, []);
 
   useEffect(() => {
     if (report) {
@@ -67,7 +86,9 @@ export function Checker() {
       if (e instanceof ApiError && e.status === 429) {
         // Our own translated text only: the server's English detail would repeat it.
         const minutes = Math.max(1, Math.ceil((e.retryAfter ?? 3600) / 60));
-        setError(`${t.tooMany} ${(token ? t.tooManyLater : t.tooManyLogin).replace("{m}", String(minutes))}`);
+        if (e.reason === "user") setError(t.dailyLimit);
+        else if (e.reason === "global") setError(t.busyNow);
+        else setError(`${t.tooMany} ${(token ? t.tooManyLater : t.tooManyLogin).replace("{m}", String(minutes))}`);
       }
       else if (e instanceof ApiError && e.message) setError(e.message);
       else setError(t.errorGeneric);

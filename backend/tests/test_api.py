@@ -44,7 +44,7 @@ def test_anonymous_rate_limit():
     for i in range(5):
         assert client.post("/api/investigate", json={"message": f"hello number {i} test"}).status_code == 200
     r = client.post("/api/investigate", json={"message": "hello number 99 test"})
-    assert r.status_code == 429 and "retry_after" in r.json()
+    assert r.status_code == 429 and "retry_after" in r.json() and r.json()["reason"] == "ip"
 
 
 def test_history_requires_login():

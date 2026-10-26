@@ -7,6 +7,7 @@ export class ApiError extends Error {
     message: string,
     public status: number,
     public retryAfter?: number, // seconds, sent with 429 "too many checks"
+    public reason?: string, // which limit: ip | cached | user | global | other
   ) {
     super(message);
   }
@@ -48,14 +49,16 @@ export async function investigate(message: string, token: string | null, handler
   if (!res.ok || !res.body) {
     let detail = "";
     let retryAfter: number | undefined;
+    let reason: string | undefined;
     try {
       const body = await res.json();
       detail = body.detail ?? "";
       retryAfter = typeof body.retry_after === "number" ? body.retry_after : undefined;
+      reason = typeof body.reason === "string" ? body.reason : undefined;
     } catch {
       /* body was not JSON */
     }
-    throw new ApiError(typeof detail === "string" ? detail : "", res.status, retryAfter);
+    throw new ApiError(typeof detail === "string" ? detail : "", res.status, retryAfter, reason);
   }
   const reader = res.body.getReader();
   const decoder = new TextDecoder();

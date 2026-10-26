@@ -126,8 +126,13 @@ def _sse(event: dict[str, Any]) -> str:
     return f"event: {event.get('type', 'message')}\ndata: {json.dumps(event, ensure_ascii=False)}\n\n"
 
 
-def _too_many(retry_after: int, message: str) -> JSONResponse:
-    return JSONResponse(status_code=429, content={"detail": message, "retry_after": retry_after}, headers={"Retry-After": str(retry_after)})
+def _too_many(retry_after: int, message: str, reason: str = "ip") -> JSONResponse:
+    """reason lets the website show its own translated text: ip | cached | user | global | other."""
+    return JSONResponse(
+        status_code=429,
+        content={"detail": message, "retry_after": retry_after, "reason": reason},
+        headers={"Retry-After": str(retry_after)},
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -190,19 +195,19 @@ async def investigate(body: InvestigateIn, request: Request, user: dict | None =
         # so it does not use up the visitor's allowance; a loose cap stops abuse.
         ok, retry = limiter.check(f"cached:{ip}", s.cached_checks_per_hour, 3600)
         if not ok:
-            return _too_many(retry, "Too many checks from this connection. Please try again later.")
+            return _too_many(retry, "Too many checks from this connection. Please try again later.", "cached")
     else:
         if user and not is_admin:
             ok, retry = limiter.check(f"user:{user['id']}", s.user_checks_per_day, 86400)
             if not ok:
-                return _too_many(retry, "Daily limit reached for your account. Please try again tomorrow.")
+                return _too_many(retry, "Daily limit reached for your account. Please try again tomorrow.", "user")
         elif not user:
             ok, retry = limiter.check(f"ip:{ip}", s.anon_checks_per_hour, 3600)
             if not ok:
                 return _too_many(retry, "Too many checks from this connection. Log in for more, or try again later.")
         ok, retry = limiter.check("global", GLOBAL_HOURLY_CHECKS, 3600)
         if not ok:
-            return _too_many(retry, "ScamSach is very busy right now. Please try again in a few minutes.")
+            return _too_many(retry, "ScamSach is very busy right now. Please try again in a few minutes.", "global")
 
     async def stream() -> AsyncIterator[str]:
         report: dict | None = None
@@ -284,7 +289,7 @@ async def followup(case_id: str, body: FollowupIn, user: dict = Depends(require_
     case_id = _valid_uuid(case_id)
     ok, retry = limiter.check(f"followup:{user['id']}", get_settings().followups_per_hour, 3600)
     if not ok:
-        return _too_many(retry, "You have asked many questions. Please try again later.")
+        return _too_many(retry, "You have asked many questions. Please try again later.", "other")
     case = await store.get_case(user["id"], case_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found.")
@@ -326,7 +331,7 @@ class FeedbackIn(BaseModel):
 async def feedback(body: FeedbackIn, request: Request, user: dict | None = Depends(current_user)):
     ok, retry = limiter.check(f"feedback:{client_ip(request)}", get_settings().feedback_per_hour, 3600)
     if not ok:
-        return _too_many(retry, "Thanks! You have sent a lot of feedback already. Please try again later.")
+        return _too_many(retry, "Thanks! You have sent a lot of feedback already. Please try again later.", "other")
     masked_message = None
     if body.share_message and body.message:
         masked_message = mask_text(normalize_message(body.message)[: get_settings().max_message_chars]).text

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useApp } from "@/lib/app-context";
 import { authEnabled } from "@/lib/supabase";
+import { START_OVER_EVENT } from "@/lib/events";
 
 export function Header() {
   const { t, lang, setLang, session, login, logout } = useApp();
@@ -11,7 +12,12 @@ export function Header() {
       {/* Brand and the language switch stay on the first row everywhere; the
           text links share one consistent style and drop to a second row on phones. */}
       <div className="wrap header-row">
-        <Link href="/" className="wordmark" aria-label="ScamSach home">
+        <Link
+          href="/"
+          className="wordmark"
+          aria-label="ScamSach home"
+          onClick={() => window.dispatchEvent(new Event(START_OVER_EVENT))}
+        >
           <span className="wordmark-scam">Scam</span>
           <span className="wordmark-sach">Sach</span>
         </Link>
