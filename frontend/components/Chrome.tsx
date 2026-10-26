@@ -80,7 +80,10 @@ export function Footer() {
     <footer className="site-footer">
       <div className="wrap">
         <p>{t.footer}</p>
-        <p className="muted">{t.sbAttribution}</p>
+        <p className="muted">
+          {t.sbAttribution}{" "}
+          <Link href="/privacy">{t.privacyLink}</Link>
+        </p>
       </div>
     </footer>
   );

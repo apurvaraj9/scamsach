@@ -139,7 +139,7 @@ Check which integrations work: `python -m scripts.check_setup` (prints OK/MISSIN
 | Backend | Render free web service (Docker) | `render.yaml` blueprint; sleeps after 15 min idle |
 | Frontend | Vercel Hobby | set `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` |
 | Database + login | Supabase free | run `supabase/schema.sql`; enable Google provider |
-| Keep-alive | cron-job.org + GitHub Actions | set repo variable `BACKEND_URL` |
+| Keep-alive | cron-job.org + GitHub Actions | set repo variable `BACKEND_URL`; in cron-job.org add headers `User-Agent: scamsach-keepalive` and `Accept: application/json` (otherwise Render answers a sleeping service with a large browser loading page and the job fails with "output too large") |
 | Tracing | Langfuse Cloud Hobby | optional |
 
 ## Project structure
