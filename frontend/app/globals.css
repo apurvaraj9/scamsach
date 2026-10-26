@@ -875,6 +875,29 @@ label.chip {
   margin-top: 1.75rem;
 }
 
+.home-info {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule);
+}
+.home-info h2 {
+  font-size: 1.35rem;
+  margin: 0 0 1rem;
+}
+.home-info dl {
+  margin: 0;
+}
+.home-info dl > div {
+  margin-bottom: 1rem;
+}
+.home-info dt {
+  font-weight: 700;
+}
+.home-info dd {
+  margin: 0.2rem 0 0;
+  line-height: 1.55;
+}
+
 /* ---------- Footer ---------- */
 .site-footer {
   border-top: 1px solid var(--rule);
