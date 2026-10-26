@@ -4,7 +4,7 @@ A free scam-message investigator for India. Paste a suspicious SMS, WhatsApp mes
 
 Built for the people who receive these messages every day and can least tell them apart: parents, older relatives and first-time smartphone users. English, Hindi and Hinglish messages work, and the whole interface switches to Hindi with one tap.
 
-**Live demo:** `https://<your-site>.vercel.app` · **API:** `https://<your-api>.onrender.com/health`
+**Live demo:** https://scamsach.vercel.app · **API health:** https://scamsach-api.onrender.com/health · **Privacy:** https://scamsach.vercel.app/privacy
 
 ---
 

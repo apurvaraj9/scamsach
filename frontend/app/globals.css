@@ -738,9 +738,9 @@ textarea:focus {
   white-space: nowrap;
 }
 .mini-stamp {
-  --c: var(--stamp-red);
-  color: var(--c);
-  border: 2px solid var(--c);
+  /* colour comes from .stamp-suspicious / .stamp-likely_safe; red for scam */
+  color: var(--c, var(--stamp-red));
+  border: 2px solid var(--c, var(--stamp-red));
   border-radius: 6px;
   padding: 0.1rem 0.45rem;
   font-weight: 800;
